@@ -1,8 +1,8 @@
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd 
+import numpy as np 
+import matplotlib.pyplot as plt # here we are impoting a specific model from the library matplotlib
 
-from os import mkdir
+# Plotting
 
 from plotnine import (
 ggplot, aes, 
@@ -17,7 +17,13 @@ theme_light,
 theme_classic
 )
 
+
+
+
+from mizani.breaks import date_breaks
 from mizani.formatters import date_format, currency_format
+
+date_format()
 
 
 bikes_df = pd.read_excel("00_data_raw/bikes.xlsx")
@@ -230,6 +236,7 @@ ggplot(sales_by_month_df,aes(x = 'order_date', y = 'Total_Price'))+\
 #sales by year and category 2
 ## Manipulate
 df.info()
+df['order_date'] = pd.to_datetime(df['order_date'])
 
 #be meticulous about learning this part
 df[['category_2','order_date','Total_Price']]\
@@ -269,6 +276,7 @@ sales_by_month_cat2\
     )\
     .fillna(0)\
     .plot(kind = 'line', subplots = True)
+    
 #Lets make subplots so that its much more clear
 sales_by_month_cat2\
     .pivot(
@@ -283,17 +291,80 @@ plt.show()
         
 # Reporting
 
+#geom_smooth(method = 'lm') adding a linear model
+#a trend line here is the added
 ggplot(
     mapping = aes(x = 'order_date', y= 'Total_Price', color = 'category_2'),
     data = sales_by_month_cat2
     ) +\
     geom_line()+\
+    geom_smooth(method = 'lm', se = False, color = 'blue')+\
     facet_wrap(
         facets = "category_2",
         ncol=3
     )        
+    
+# get it to look better
+ggplot(
+    mapping = aes(x = 'order_date', y= 'Total_Price'),
+    data = sales_by_month_cat2
+    ) +\
+    geom_line()+\
+    geom_smooth(method = 'lm', se = False, color = 'blue')+\
+    facet_wrap(
+        facets = "category_2",
+        ncol=3
+    )    
+    
+# get it to look better
+#scales = "free_y" this helps the different facets have their own scales for the y axis 
+# Need to correct this part further
+sales_by_month_cat2.info()
+
+sales_by_month_cat2.info()
+sales_by_month_cat2['order_date']
+
+sales_by_month_cat2.dtypes
+
+ggplot(
+    mapping = aes(x = 'order_date', y ='Total_Price'),
+    data = sales_by_month_cat2
+    )+ \
+        geom_line(color = "#2C3E50") +\
+        geom_smooth(method = "lm", se = False, color = "blue")+ \
+        facet_wrap(
+            facets = "category_2",
+            ncol = 3,
+            scales="free_y"
+        ) +\
+        scale_y_continuous(labels= usd)+\
+        scale_x_datetime( 
+            breaks=date_breaks("2 years"),
+            labels=date_format(fmt = "%Y-%m")
+            )+\
+        labs(
+            title= "Revenue By Week",
+            x = "",
+            y = "Revenue"
+        )+\
+        theme_matplotlib()+\
+        theme(
+            subplots_adjust={'wspace':0.25},
+            axis_text_y=element_text(size = 6),
+            axis_text_x=element_text(size=6)
+        )    
 
 
+# writing files
+#the pickle
+
+df.to_pickle("00_data_wrangled/bike_orderlines_wrangled_df.pkl")
+#csv
+
+df.to_csv("00_data_wrangled/bike_orderlines_wrangled_df.csv")
+#Excel
+
+df.to_excel("00_data_wrangled/bike_orderlines_wrangled_df.xlsx")
 
 
 
