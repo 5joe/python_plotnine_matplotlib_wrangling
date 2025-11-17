@@ -64,6 +64,7 @@ help(pd.read_excel)
 
 
 # %%
+getcwd()
 bikes_df = pd.read_excel("00_data_raw/bikes.xlsx")
 
 bikes_df
@@ -71,9 +72,11 @@ bikes_df
 bikeshops_df = pd.read_excel("00_data_raw/bikeshops.xlsx")
 bikeshops_df
 
+
+
 orderlines_df = pd.read_excel(
     io = "00_data_raw/orderlines.xlsx",
-    converters= {'order.date': str}
+    converters= {'order.date':str}
     )
 orderlines_df.info()
 
@@ -81,6 +84,22 @@ orderlines_df.info()
 # 3.0 Examining Data ----
 
 # %%
+s = bikes_df['description']
+freq_count_series = s.value_counts()
+freq_count_series.nlargest(5)
+
+top5_bikes_series = bikes_df['description'].value_counts().nlargest(5)
+
+fig = top5_bikes_series.plot(kind= "barh")
+fig.invert_yaxis()
+
+fig
+plt.show()
+
+
+pd.Series.plot(top5_bikes_series)
+plt.show()
+
 bikes_df.head(10)
 
 orderlines_df
@@ -102,6 +121,7 @@ fig.invert_yaxis()
 
 fig
 plt.show()
+
 
 # 4.0 Joining Data ----
 orderlines_df = pd.DataFrame(orderlines_df)

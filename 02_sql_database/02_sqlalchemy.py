@@ -31,7 +31,7 @@ orderlines_df = pd.read_excel("./00_data_raw/orderlines.xlsx")
 bikes_df.to_sql("bikes", con=conn)
 pd.read_sql("SELECT * FROM bikes", con=conn)
 
-bikeshops_df.to_sql("bikeshops", con=conn)
+bikeshops_df.to_sql("bikeshops", con=conn, if_exists="replace")
 pd.read_sql("SELECT * FROM bikeshops", con=conn)
 
 
@@ -61,6 +61,35 @@ inspector = sql.inspect(conn)
 inspector.get_schema_names()
 
 inspector.get_table_names('main')
+
+#here I am doing improv
+print(inspector.get_table_names()) 
+# Read Excel Files
+
+bikes_df = pd.read_excel("./00_data_raw/bikes.xlsx")
+
+bikeshops_df = pd.read_excel("./00_data_raw/bikeshops.xlsx")
+
+orderlines_df = pd.read_excel("./00_data_raw/orderlines.xlsx")
+
+# Create Tables
+
+bikes_df.to_sql("bikes", con=conn)
+pd.read_sql("SELECT * FROM bikes", con=conn)
+
+bikeshops_df.to_sql("bikeshops", con=conn, if_exists="replace")
+pd.read_sql("SELECT * FROM bikeshops", con=conn)
+
+
+orderlines_df\
+    .iloc[: , 1:]\
+    .to_sql("orderlines", con=conn, if_exists="replace")
+pd.read_sql("SELECT * FROM orderlines", con=conn)
+
+
+pd.read_sql("SELECT * FROM bikeshops", con = conn)
+##above here I am doing improve
+
 
 ## also can just do
 # Read the data
