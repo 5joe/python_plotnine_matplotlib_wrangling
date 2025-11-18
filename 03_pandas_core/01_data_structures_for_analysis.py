@@ -31,12 +31,14 @@ type(df).mro()
 type("string").mro()
 
 # Objects have attributes
+## for attributes we dont use parenthesis ()
 
 df.shape # can return some information on the object
 
 df.columns
 
 # Objects have methods
+## Here we use parenthesis
 
 df.query("model == 'Jekyll Carbon 2'")
 

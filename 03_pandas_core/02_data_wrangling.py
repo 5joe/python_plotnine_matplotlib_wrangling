@@ -30,6 +30,7 @@ df[['order_date', 'order_id', 'order_line']]
 
 # This gives me a series
 type(df['bikeshop_name'])
+df['bikeshop_name'].dtype
 
 df['order_date'] 
 type(df['order_date'])
@@ -39,6 +40,7 @@ df[['order_date']]
 type(df[['order_date']]) 
 
 # Select by position(subsetting by column index)
+df.iloc[1:6, 1:3]
 
 df.iloc[:,1:4]
 
