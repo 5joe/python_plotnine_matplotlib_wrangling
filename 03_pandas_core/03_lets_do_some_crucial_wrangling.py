@@ -1,0 +1,378 @@
+#imports 
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from my_pandas_extensions.database import collect_data
+
+df =collect_data()
+
+df
+
+
+# 1.0 select the columns
+df[['order_date', 'order_id', 'order_line']]
+
+type(df[['order_date', 'order_id', 'order_line']]) # here this shows that it is a dataframe
+
+
+# select by position
+##lets use the iloc[]
+df.iloc[:,0:3]
+
+df.iloc[:, -3:]
+ 
+
+##select by text matching
+df.filter(regex="(^model)|(^cat)", axis=1)
+
+###VERY IMPORTANT DETAIL RIGHT HERE
+###axis=1 → filter columns
+###axis=0 → filter rows
+
+# Rearranging columns
+#---single approach---
+l = df.columns.tolist()
+
+l.remove('model')
+
+l
+
+['model', *l]
+df[['model', *l]]
+
+#---the multiple approach -----------
+l = df.columns.tolist()
+l.remove('category_1')
+l.remove('category_2')
+
+df[['model','category_1','category_2', *l]]
+
+# --List Comprehensive
+l = df.columns.tolist()
+l
+
+cols_to_front = ['model', 'category_1', 'category_2']
+
+#here we are interating through the list in l Column for column
+##therefore the list is reproduced here
+[col for col in l]
+
+
+
+#--further more----
+l2 = [col for col in l if col not in cols_to_front]
+
+##note that the approach below is actually prett great
+df[[*cols_to_front, *l2]]
+
+#selecting by type
+df.info()
+
+#--here we can use include or exclude, so it will include that datatype----
+df.select_dtypes(include=object)
+test = df.select_dtypes(include=object)
+
+test.info() # you observer that it grabs all the columns that are the object dtype()
+
+df1 = df.select_dtypes(include=object)
+
+df2 = df.select_dtypes(exclude=object)
+
+#combines multiple dataframes that are contained in a list
+pd.concat([df1, df2], axis = 1)
+
+df3 = df[['model','category_1','category_2']]
+
+df4 = df.drop(['model','category_1','category_2'], axis = 1)
+
+pd.concat([df3, df4], axis = 1)
+
+#dropping columns (deselecting)
+df.drop(['model','category_1','category_2'], axis = 1)
+
+
+# 2.0 ARRANGING ROWS
+df.sort_values('total_price', ascending=False)
+
+df.sort_values('order_date', ascending=False)
+
+# a more direct approach
+df['price'].sort_values(ascending=False)
+
+df['price'].sort_values()
+
+#3.0 FILTERING ------
+# simple filters(rowwise filtering in this case)
+
+df.order_date>= pd.to_datetime("2015-01-01")
+
+#the above can be used to subset
+#therefore here we have used the filter to subset the dataframe
+df[df.order_date>= pd.to_datetime("2015-01-01")]
+
+
+
+df.model == "Trigger Carbon 1"
+df[df.model == "Trigger Carbon 1"]
+
+#filtering for anything that starts with trigger
+df.model.str.startswith('Trigger')
+
+#then use that to subset
+df[df.model.str.startswith('Trigger')]
+
+#we can also use contains
+df.model.str.contains('Carbon')
+
+#then we can use that to subset
+df[df.model.str.contains('Carbon')]
+
+#QUERY METHOD
+price_threshold = 5000
+
+df.query("price >= @price_threshold")
+
+#we can combine queries
+price_threshold_1 = 5000
+price_threshold_2 = 1000
+
+df.query("(price >= @price_threshold_1) | (price >= @price_threshold_2)")
+
+df.query(f"price >= {price_threshold_1}")
+
+# filtering in a list
+df['category_2'].unique()
+
+df['category_2'].value_counts()
+
+df['category_2'].isin(['Triathalon','Over Mountain'])
+df[df['category_2'].isin(['Triathalon','Over Mountain'])]
+
+#I can do this with the negation(~) to get the opposite
+df[~df['category_2'].isin(['Triathalon','Over Mountain'])]
+
+#Slicing
+
+#remember when doing the iloc[] the first part is for
+##the rows and the second for the columns
+###they are divided by a comma(,)
+
+df[:5] # the first 5 rows
+# above is the same as
+df.head(5)
+
+df.tail(5)
+
+#index slicing
+df.iloc[0:5, [1,3,5]]
+
+df.iloc[0:5, :]
+df.iloc[:,[1,3,5]]
+
+
+#unique/ Distinct values
+##we use .drop_duplicates()
+df[['model','category_1','category_2','frame_material']]\
+    .drop_duplicates()
+
+df['model'].unique()
+
+# Top / Bottom
+# getting the nlargest from a dataframe
+df.nlargest(n = 20, columns = 'total_price')
+
+df['total_price'].nlargest(n=20)
+
+# for the smallest orders
+df.nsmallest(n=15, columns='total_price')
+
+df.total_price.nsmallest(n=15)
+
+# Sampling rows()
+##if the random_state is set to 123.
+###it will always return the same 10 rows
+df.sample(n = 10, random_state=123)
+
+df.sample(frac = 0.10, random_state=123)
+
+#WE ARE ADDING CALCULATED COLUMNS(MUTATING)
+
+df2 = df.copy()
+
+df2['new_col'] = df2['price'] * df2['quantity']
+df2
+df2['new_col_2'] = df2['model'].str.lower()
+df2
+
+#METHOD 2- ASSIGN
+##the result here is the frame_material column but the values are in Lower case
+df['frame_material'].str.lower()
+
+#---in the case below x is the dataframe---
+
+###here the result is the whole dataframe with all the columns and the frame_material column having lower case
+df.assign(frame_material = lambda x: x['frame_material'].str.lower())
+
+####in this case it does the same thing as above but then the inintial column isnt overwritten
+df.assign(frame_material_lower = lambda x: x['frame_material'].str.lower())
+
+#small illustration
+##here we have an interesting use of the assign() function.
+###here we are normalizing the illustration
+df[['model','price']]\
+    .drop_duplicates()\
+    .assign(price = lambda x: np.log(x['price']))\
+    .set_index('model')\
+    .plot(kind = 'hist')
+
+# Adding flags/ we can make Booleans using the assign function
+##False/ True
+
+"Supersix Evo Hi-Mod Team".lower().find("supersix") >=0
+
+"Supersix Evo Black Inc.".lower().find("supersix") >=0
+
+"Jekyll Carbon 4".lower().find("supersix") >= 0
+
+#the method below doesnt work coz its a string
+##it works better for SeriesS
+###"Jekyll Carbon 4".lower().contains("supersix")
+
+type("Jekyll Carbon 4")
+
+df.model.str.lower().str.contains('Carbon')
+
+##in some cases we are adding the str twice there be very linient 
+df.assign(flag_supersix= lambda x: x['model'].str.lower().str.contains('supersix'))
+
+#Binning
+
+pd.cut(df.price, bins = 3, labels = ['low','medium','high'])
+
+type(pd.cut(df.price, bins = 3, labels = ['low','medium','high']))
+
+#here converted to a str
+pd.cut(df.price, bins = 3, labels = ['low','medium','high']).astype("str")
+## here I have used the assign() function 
+df.assign(price_bins = lambda x: pd.cut(x['price'], bins = 3, labels = ['low','medium','high']))
+
+df[['model','price']]\
+    .drop_duplicates()\
+    .assign(price_group = lambda x: pd.cut(x['price'], bins = 3))\
+    .pivot(
+        index = 'model',
+        columns = 'price_group',
+        values = 'price'
+    )\
+    .style.background_gradient(cmap='Blues')
+
+# qcut() - another cutting function
+##this cuts numeric columns into quantiles
+###this can help with the much more precise quantiles
+pd.qcut(df.price, q=[0, 0.33, 0.66, 1], labels = ['low','medium','high'])
+
+df[['model','price']]\
+    .drop_duplicates()\
+    .assign(price_group = lambda x: pd.qcut(x['price'], q = 3))\
+    .pivot(
+        index = 'model',
+        columns = 'price_group',
+        values = 'price'
+    )\
+    .style.background_gradient(cmap='Blues')
+
+
+#5.0 GROUPING
+##5.1 Aggreagations (No Grouping)
+df.sum()
+#this initailly returns a panda core Series
+type(df[['total_price']].sum())
+
+#here we are converting this to a dataframe
+df[['total_price']].sum().to_frame()
+
+df\
+    .select_dtypes(exclude=['object'])\
+    .drop('order_date', axis = 1)\
+    .sum()
+
+df\
+    .select_dtypes(exclude=['object'])\
+    .drop('order_date', axis = 1)\
+    .agg(np.sum)
+
+
+#here make sure that you have checked the data type that is going to be summed
+df\
+    .select_dtypes(np.number)\
+    .agg([np.sum,np.mean,np.std])
+
+df.agg(
+    {
+        'quantity':np.sum,
+        'total_price':[np.sum, np.mean]
+    }
+)
+
+# Comman summaries
+df['model'].value_counts()
+df[['model','category_1']].value_counts()
+
+# the number of unique for the columns
+df.nunique()
+
+#this checks if there are any missing data per column
+## its then returns the total number of missing data
+###if none then 0 is returned
+df.isna().sum()
+
+df\
+    .select_dtypes(np.number)\
+    .std()
+
+
+#I hope that you have realised that whenever we are 
+##passing more that 1 function we are placing the functions
+###into []
+df\
+    .select_dtypes(np.number)\
+    .aggregate([np.mean,np.std])
+
+#5.2 Groupby  and Aggregate
+###a very important part is numeric_only = True in the sum() function
+df.info()
+
+df.groupby(['city']).sum(numeric_only=True)
+
+df.groupby(['city','state']).sum(numeric_only=True)
+
+df\
+    .groupby(['city','state'])\
+    .agg(
+        dict(
+            total_price = np.sum,
+            quantity = np.sum,
+            price = [np.sum, np.mean, np.std]
+            )
+        )
+
+
+# IMPORTANT NOTE THAT THESE TWO ARE THE SAME
+##dict(total_price = np.sum) and {'total_price': np.sum}
+
+# Get the sum and the median by groups
+
+summary_df_1 = df[['category_1','category_2','total_price']]\
+    .groupby(['category_1','category_2'])\
+    .agg([np.sum, np.median])\
+    .reset_index()
+
+summary_df_1
+
+# Apply Summary Functions to specific columns
+
+df[['category_1','category_2','total_price','quantity']]\
+    .groupby(['category_1','category_2'])
+
+

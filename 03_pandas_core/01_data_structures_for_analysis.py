@@ -39,6 +39,7 @@ df.columns
 
 # Objects have methods
 ## Here we use parenthesis
+df.query("model == 'Jekyll Carbon 2'")
 
 df.query("model == 'Jekyll Carbon 2'")
 
@@ -64,9 +65,15 @@ type(df['order_date']) #pandas.core.series.Series
 
 df['order_date'].dt.year
 
-df.dt
+df['order_date'].dt.year
 
 # - NUMPY
+
+#making some adjustments here
+df['order_date'].values.dtype
+type(df['order_date'].values).mro()
+df['order_date'].value_counts()
+
 
 type(df['order_date'].values).mro()
 
@@ -109,6 +116,22 @@ m[0]
 m[4]
 m[3]
 
+k = {'b' :2}
+type(k)
+
+k.keys()
+
+k.values()
+
+# List
+
+r = [1, "m", [4, "h"]]
+
+r[0]
+r[1]
+r[2]
+
+list(k.values())[0]
 
 list(d.values())[0] # need a deeper understanding of lists
 
@@ -150,6 +173,8 @@ type(df['model'].values[0])
 mode ="Jekyll Carbon 2"
 price =  10101
 
+f"The {mode} bike costs the price: {price}"
+
 f"The model is {mode} and the price {price}"
 
 
@@ -158,6 +183,7 @@ f"The price for the Jekyll Carbon 2 is {price}"
 type(price)
 
 # Casting
+###----------the last thing that I wanna talk about is casting ----------------
 
 model = " Jekyll Carbon 2"
 price = 6070
@@ -171,6 +197,8 @@ type(price)
 price + "Some Text"# this requires that the price is first converted to a string then its combined to the text.
 
 str(price) + "Some text" # in this concept this is called casting
+
+int("50%".replace("%", ""))
 
 type(range(1, 50)).mro()
 
@@ -189,5 +217,25 @@ pd.Series(r).to_frame()
 # converting column data types
 
 df['order_date'].astype('str').str.replace("-", '/')
+
+
+
+#here we are casting into a list again
+##note that when using the range() you actually have to cast a list for the values to be out put
+
+p = list(range(1, 51))
+np.array(p)
+
+pd.Series(p).to_frame
+# from low level objects to higher level objects
+
+type(range(1, 50)).mro()
+
+
+######VERY IMPORTANT STUFF RIGHT HERE
+#converting columns within a dataframe from one type to another
+df['order_date'].astype('str').str.replace("-", "/")
+
+
 
 

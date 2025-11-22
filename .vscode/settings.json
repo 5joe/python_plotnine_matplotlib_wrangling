@@ -1,5 +1,6 @@
 {
     "jupyter.interactiveWindow.textEditor.executeSelection": true,
     "python.REPL.enableREPLSmartSend": false,
-    "jupyter.notebookFileRoot": "${workspaceFolder}"
+    "jupyter.notebookFileRoot": "${workspaceFolder}",
+    "python.envFile": "${workspaceFolder}/.env"
 }
