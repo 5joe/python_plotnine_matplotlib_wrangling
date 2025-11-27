@@ -2,5 +2,7 @@
     "jupyter.interactiveWindow.textEditor.executeSelection": true,
     "python.REPL.enableREPLSmartSend": false,
     "jupyter.notebookFileRoot": "${workspaceFolder}",
-    "python.envFile": "${workspaceFolder}/.env"
+    "python.envFile": "${workspaceFolder}/.env",
+    "notebook.output.defaultRenderer": "text/html"
+
 }

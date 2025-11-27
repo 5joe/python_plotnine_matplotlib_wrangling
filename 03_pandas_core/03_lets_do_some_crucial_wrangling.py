@@ -372,7 +372,136 @@ summary_df_1
 
 # Apply Summary Functions to specific columns
 
-df[['category_1','category_2','total_price','quantity']]\
-    .groupby(['category_1','category_2'])
+summary_df_2 = df[['category_1','category_2','total_price','quantity']]\
+    .groupby(['category_1','category_2'])\
+    .agg(
+        {
+            'quantity': np.sum,
+            'total_price':np.sum
+        }
+    )\
+    .reset_index()
 
+summary_df_2
+
+#Detecting NAs 
+summary_df_1.columns
+
+summary_df_1.isna().sum()
+
+
+#Groupby + Trasform(APply)
+df[['category_2','order_date','total_price','quantity']]\
+    .set_index('order_date')\
+    .groupby('category_2', as_index = False)\
+    .resample("W")\
+    .agg(np.sum)\
+    .reset_index()
+
+#lets proceed with this
+summary_df_3 = df[['category_2','order_date','total_price','quantity']]\
+    .set_index('order_date')\
+    .groupby('category_2')\
+    .resample("W")\
+    .agg(np.sum)\
+    .reset_index(level = 1)
+
+# there are some issues with the plot below
+#### I need to handle here
+summary_df_3\
+    .drop_duplicates()\
+    .set_index('order_date')\
+    .groupby('category_2')\
+    .apply(lambda x : (x.total_price - x.total_price.mean())/x.total_price.std())\
+    .reset_index()\
+    .pivot(
+        index = 'order_date',
+        columns = 'category_2',
+        values = 'total_price'
+    )\
+    .plot()
+
+#5.4 Groupby + Filter (Apply)
+#need to get these too
+df.tail(3)
+summary_df_3\
+    .groupby('category_2')\
+    .tail(5)
+
+summary_df_3\
+    .groupby('category_2')\
+    .apply(lambda x: x.iloc[10,20])
+
+
+# Renaming 
+# single index
+summary_df_2\
+    .rename(columns = dict(category_1 = "Category 1"))
+
+summary_df_2.columns.str.replace("_", " ").str.title()
+
+summary_df_2\
+    .rename(columns = lambda x: x.replace("_", " ").title())
+
+#Target specific columns
+summary_df_2\
+    .rename(columns = {'total_price' : 'Revenue'})
+
+# Multi index
+summary_df_1.columns
+
+#List Comprehensions
+##A preferred way to make lists using singe-line iteration
+["_".join(col).rstrip("_") for col in summary_df_1.columns.tolist()]
+
+"_".join(('category_1', 'median'))
+
+summary_df_1\
+    .set_axis(
+        ["_".join(col).rstrip("_") for col in summary_df_1.columns.tolist()], 
+        axis=1
+     )
+
+# RESHAPING (MELT & PIVOT_TABLE)
+
+#Aggregate Revenue by Bikeshop by Category_1
+
+bikeshop_revenue_df = df[['bikeshop_name','category_1','total_price']]\
+    .groupby(['bikeshop_name','category_1'])\
+    .sum()\
+    .reset_index()\
+    .sort_values('total_price', ascending = False)\
+    .rename(columns = lambda x: x.replace("_", " ").title())
+
+bikeshop_revenue_df
+# the wide format
+##is very important for:
+### 1. plotting with matplotlib backend
+#### 2. Illustrating in Tables
+
+# 7.1 Pivot & Melt
+#Pivot (pivot wider)
+
+
+#IMPORTANT: MEMORISE HOW TO DO THIS 
+bikeshop_revenue_wide_df = bikeshop_revenue_df\
+.pivot(
+    index =['Bikeshop Name'],
+    columns = ['Category 1'],
+    values = ['Total Price']
+)\
+.reset_index()\
+.set_axis(
+    ['Bikeshop Name', 'Mountain','Road'],
+    axis =1
+)
+#Try to be very analytical while doing this
+
+bikeshop_revenue_wide_df\
+    .sort_values("Mountain")\
+    .plot(
+        x = "Bikeshop Name", 
+        y = ["Mountain", "Road"],
+        kind =  'barh'
+)
 
