@@ -480,6 +480,8 @@ bikeshop_revenue_df
 #### 2. Illustrating in Tables
 
 # 7.1 Pivot & Melt
+##Pivot - note that pivot turns a column values into a row headers
+### melt - turns particular row headers in Columns
 #Pivot (pivot wider)
 
 
@@ -495,6 +497,7 @@ bikeshop_revenue_wide_df = bikeshop_revenue_df\
     ['Bikeshop Name', 'Mountain','Road'],
     axis =1
 )
+
 #Try to be very analytical while doing this
 
 bikeshop_revenue_wide_df\
@@ -504,4 +507,262 @@ bikeshop_revenue_wide_df\
         y = ["Mountain", "Road"],
         kind =  'barh'
 )
+# Wide format:
+#is great for reports
+
+# not the changes
+from mizani.labels import dollar
+usd = dollar
+
+usd([1000])[0]
+
+bikeshop_revenue_wide_df\
+    .sort_values("Mountain", ascending = False)\
+    .style\
+    .highlight_max()\
+    .format(
+        {
+            "Mountain": lambda x: usd([x])[0],
+            "Road" : lambda x: usd([x])[0]
+        }
+    )\
+    .to_excel("03_pandas_core/bikeshop_revenue_wide.xlsx")
+
+
+# Melt (Pivoting long)
+## melt() this does the oppposite of pivot
+
+bikeshop_revenue_long_df = pd.read_excel("03_pandas_core/bikeshop_revenue_wide.xlsx")\
+    .iloc[:, 1:]\
+    .melt(
+        value_vars=["Mountain","Road"],
+        var_name = "Category 1",
+        value_name = "Revenue",
+        id_vars = "Bikeshop Name"
+    )
+
+bikeshop_order = bikeshop_revenue_long_df\
+    .groupby("Bikeshop Name")\
+    .sum()\
+    .sort_values("Revenue")\
+    .index\
+    .tolist()
+
+from plotnine import (
+    ggplot, aes, geom_col, facet_wrap,
+    coord_flip,
+    theme_minimal
+)
+
+# Categorical Data Type
+##we use this when we want to sort text data.
+##Categorical data Combines a label (text)
+###and a numeric value (numeric order)
+
+
+bikeshop_revenue_long_df["Bikeshop Name"] = pd.Categorical(
+    bikeshop_revenue_long_df['Bikeshop Name'],
+    categories=bikeshop_order
+    )
+
+
+bikeshop_revenue_long_df.info()
+
+
+
+ggplot(
+    mapping = aes(x = "Bikeshop Name", y = "Revenue", fill = "Category 1"),
+    data = bikeshop_revenue_long_df
+    ) +\
+    geom_col()+\
+    coord_flip()+\
+    facet_wrap("Category 1")+\
+    theme_minimal()
+
+#7.2 Pivot Table (Pivot + Summarization, Excel Pivot Table)
+
+df\
+    .pivot_table(
+        columns = None,
+        values = "total_price",
+        index = "category_1",
+        aggfunc= np.sum
+    )
+
+df\
+    .pivot_table(
+        columns = "frame_material",
+        values = "total_price",
+        index = "category_1",
+        aggfunc= np.sum
+    )
+
+df\
+    .pivot_table(
+        columns = None,
+        values = "total_price",
+        index = ["category_1", "frame_material"],
+        aggfunc= np.sum
+    )
+
+df.info()
+
+
+# Note that this worked after I set the values
+##otherwise it will try to sum columns that arent numeric
+###which inturn case and error
+df\
+    .assign(year = lambda x: x.order_date.dt.year)\
+    .pivot_table(
+        index = "year",
+        aggfunc= np.sum,
+        columns = ["category_1","category_2"],
+        values = ['total_price']
+    )
+
+
+#To invert the above
+sales_by_cat1_cat2_year = df\
+    .assign(year = lambda x: x.order_date.dt.year)\
+    .pivot_table(
+        columns = "year",
+        aggfunc= np.sum,
+        index = ["category_1","category_2"],
+        values = ['total_price']
+    )
+
+
+
+# 7.3 stack and unstack
+# unstack - Pivots Wider 1 level (Pivot)
+
+# note the unstack without any values will pivot the inner
+## most level
+sales_by_cat1_cat2_year\
+    .unstack()
+
+#level determines which level to pivot
+
+sales_by_cat1_cat2_year\
+    .unstack(
+        level= "category_2",
+        fill_value = 0
+    )
+
+sales_by_cat1_cat2_year\
+    .stack()
+
+sales_by_cat1_cat2_year\
+    .stack(
+        level = "year"
+    )
+
+
+#this the equivalent of transposing the dataframe
+sales_by_cat1_cat2_year\
+    .stack(
+        level = "year"
+    )\
+    .unstack(
+        level = ["category_1","category_2"]
+    )
+
+# 8.0 JOINING DATA ----
+
+orderlines_df = pd.read_excel("00_data_raw/orderlines.xlsx")
+bikes_df = pd.read_excel("00_data_raw/bikes.xlsx")
+
+#Merge (joining)
+pd.merge(
+    left = orderlines_df,
+    right = bikes_df,
+    left_on = "product.id",
+    right_on="bike.id"
+)
+
+# Concatenate (Binding)
+# Rows
+df_1 = df.head(5)
+df_2 = df.tail(5)
+
+pd.concat([df_1, df_2], axis = 0)
+
+# Columns 
+df_1 = df.iloc[:,5:]
+df_2 = df.iloc[:,-5:]
+
+pd.concat([df_1, df_2], axis = 1)
+
+# 9.0 SPLITTING 
+
+#separate
+
+df_2 = df['order_date'].astype('str').str.split("-", expand = True)\
+    .set_axis(["year", "month", "day"], axis = 1)
+
+df_2
+
+pd.concat([df, df_2], axis =1)
+
+# Combine
+df_2
+
+df_2['year'] + "-" + df_2['month'] + "-" + df_2['day']
+
+# 10.0 APPLY
+# - Apply functions across rows
+
+sales_cat2_daily_df = df[['category_2','order_date','total_price']]\
+    .set_index('order_date')\
+    .groupby('category_2')\
+    .resample('D')\
+    .sum()
+
+sales_cat2_daily_df
+
+np.mean([1,2,3]) # Aggregation
+
+np.sqrt([1,2,3]) # Transformation
+
+# Here we had to be specific about the numeric columns being used
+sales_cat2_daily_df.select_dtypes(include='number').apply(np.mean)
+
+sales_cat2_daily_df.select_dtypes(include='number').apply(np.sqrt)
+
+sales_cat2_daily_df.select_dtypes(include = 'number').apply(np.mean, result_type= "broadcast")
+sales_cat2_daily_df.select_dtypes(include = 'number').apply(lambda x: np.repeat(np.mean(x), len(x)))
+
+sales_cat2_daily_df\
+    .groupby('category_2')\
+    .apply(np.mean)
+
+# Alternate to apply (Transform)
+sales_cat2_daily_df\
+    .groupby('category_2')\
+    .transform(np.mean)
+
+
+# 11.0 PIPE
+# - Functional programming helper for "data" functions
+
+data = df
+
+def add_column(data, **kwargs):
+
+    data_copy = data.copy()
+
+    # print(kwargs)
+
+    data_copy[list(kwargs.keys())] = pd.DataFrame(kwargs)
+    
+    return data_copy
+
+add_column(df, total_price_2 = df.total_price * 2)
+
+df\
+    .pipe(
+        add_column, category_2_lower = df.category_2.str.lower(),
+        category_2_upper = df.category_2.str.upper()
+        ) 
+
 
