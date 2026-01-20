@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 from my_pandas_extensions.database import collect_data
 
-df =collect_data()
+df = collect_data()
 
 df
 
@@ -13,7 +13,27 @@ df
 # 1.0 select the columns
 df[['order_date', 'order_id', 'order_line']]
 
+df.info() # here we can look at all the columns that are in the data frame
+
+df_selected = df[['order_id', 'order_date', 'model', 'category_1', 'category_2', 'price', 'total_price']]
+df_selected.info()
+df_selected
+
+type(df_selected) # here shows that this a dataframe
+
+df_selected.dtypes # here this shows the different types for the columns that are in the data frame
+
+
 type(df[['order_date', 'order_id', 'order_line']]) # here this shows that it is a dataframe
+
+#Below now I am going to work with iloc[]
+##iloc[]
+## Select by position
+df.iloc[:,0:3]
+df.iloc[:,-3:]
+df.iloc[:,3:]
+df.iloc[:,5:]
+df.iloc[:,5]
 
 
 # select by position
@@ -26,11 +46,21 @@ df.iloc[:, -3:]
 ##select by text matching
 df.filter(regex="(^model)|(^cat)", axis=1)
 
+df.filter(regex="(^model)|(^cat)", axis=1)
+
+#here lets do it using the Rowise version
+#this hasnt done what I expected it to do
+df.filter(regex="(^Jekyll)|(^CAAD)", axis=0)
+
 ###VERY IMPORTANT DETAIL RIGHT HERE
 ###axis=1 → filter columns
 ###axis=0 → filter rows
 
 # Rearranging columns
+df.columns
+#----single approach-----
+l = df.columns.to_list()
+
 #---single approach---
 l = df.columns.tolist()
 
@@ -38,8 +68,34 @@ l.remove('model')
 
 l
 
+#therefore this can be used to just reorder the columns that are in the data Frame
 ['model', *l]
 df[['model', *l]]
+
+#----Here let us redo the multiple method-----#
+l = df.columns.tolist()
+
+#here below we remove both the category_1 and category_2 columns
+l.remove('category_1')
+l.remove('category_2')
+
+#---here lets use the names and the list to reorder---
+df_ordered_by_removal = df[['model','category_1','category_2',*l]]
+df_ordered_by_removal
+
+cols_to_the_front = ['model','category_1','category_2']
+
+#here we are checking throught the list l column by column
+#the list will be reproduced
+[col for col in l]
+
+#-------further more ----------#
+# here we are checking to ensure that there isn't a column that is being repeated
+l3 = [col for col in l if col not in cols_to_the_front]
+
+df[[*cols_to_the_front, *l3]]
+
+df_ordered_by_removal.columns # if you run this you can see that it takes the new arrangement that we just created
 
 #---the multiple approach -----------
 l = df.columns.tolist()
@@ -75,9 +131,27 @@ test = df.select_dtypes(include=object)
 
 test.info() # you observer that it grabs all the columns that are the object dtype()
 
-df1 = df.select_dtypes(include=object)
+df.info()
 
-df2 = df.select_dtypes(exclude=object)
+#here lets select the columns that are of the dtype object only
+df1 = df.select_dtypes(include = object)
+df1
+df1.info()
+
+#here let us do the same things without the objects dtypes
+df2 = df.select_dtypes(exclude = object)
+df2
+df2.info()
+
+#here we can do for only columns with the integer dtype though I see that we shall have to include ''
+df8 = df.select_dtypes(include = 'Int64')
+df8
+df8.info()
+
+#lets us do the same thing for the datetime dtype
+df9 = df.select_dtypes(include = 'datetime64[ns]')
+df9
+df9.info()
 
 #combines multiple dataframes that are contained in a list
 pd.concat([df1, df2], axis = 1)
@@ -89,9 +163,14 @@ df4 = df.drop(['model','category_1','category_2'], axis = 1)
 pd.concat([df3, df4], axis = 1)
 
 #dropping columns (deselecting)
+df10 = df.copy()
 df.drop(['model','category_1','category_2'], axis = 1)
+df10.drop(['model', 'category_1','category_2'], axis = 1)
 
 
+
+
+## Here we are handling the arranging of ROWS
 # 2.0 ARRANGING ROWS
 df.sort_values('total_price', ascending=False)
 
@@ -376,7 +455,11 @@ summary_df_2 = df[['category_1','category_2','total_price','quantity']]\
     .groupby(['category_1','category_2'])\
     .agg(
         {
+<<<<<<< HEAD
             'quantity': np.sum,
+=======
+            'quantity':np.sum,
+>>>>>>> 54a509f (python data wrangling)
             'total_price':np.sum
         }
     )\
@@ -384,12 +467,17 @@ summary_df_2 = df[['category_1','category_2','total_price','quantity']]\
 
 summary_df_2
 
+<<<<<<< HEAD
 #Detecting NAs 
+=======
+# Here let us detect some nas
+>>>>>>> 54a509f (python data wrangling)
 summary_df_1.columns
 
 summary_df_1.isna().sum()
 
 
+<<<<<<< HEAD
 #Groupby + Trasform(APply)
 df[['category_2','order_date','total_price','quantity']]\
     .set_index('order_date')\
@@ -764,5 +852,4 @@ df\
         add_column, category_2_lower = df.category_2.str.lower(),
         category_2_upper = df.category_2.str.upper()
         ) 
-
 
