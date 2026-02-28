@@ -54,6 +54,10 @@ orderlines_df = pd.read_excel(
     converters= {'order.date':str}
     )
 
+#redoing this part because why not
+#orderlines_df = pd.read_excel(io = "00_data_raw/orderlines.xlsx",
+#                             converters={'order.date':str})
+
 orderlines_df
 
 # 3.0 Examining Data ---
@@ -190,9 +194,27 @@ df = pd.read_pickle("00_data_wrangled/bike_orderlines_wrangled_df.pkl")
 df = pd.DataFrame(df)
 
 df['order_date']
+type(df['order_date'])
+df.info()
+
+#Lets make that a datetime from object
+df['order_date'] = pd.to_datetime(df['order_date'])
+df.info()
 
 order_date_series = df['order_date']
+type(order_date_series)
+
+#this by year
 order_date_series.dt.year
+
+type(order_date_series.dt.year) # this is actually a Series
+
+#Lets see what happens when I do this by month
+order_date_series.dt.month
+
+#of course we are doing this by day too
+order_date_series.dt.day
+
 
 # returns a single column dataframe
 sales_by_month_df = df[['order_date', 'total_price']]\
@@ -202,6 +224,22 @@ sales_by_month_df = df[['order_date', 'total_price']]\
             .reset_index()
 
 sales_by_month_df
+
+# Lets do this by year and see
+sales_by_year_df = df[['order_date','total_price']]\
+            .set_index('order_date')\
+            .resample(rule = 'Y')\
+            .agg(np.sum)\
+            .reset_index()
+
+# Lets do this by day and then see
+sales_by_day_df = df[['order_date','total_price']]\
+            .set_index('order_date')\
+            .resample(rule='D')\
+            .agg(np.sum)\
+            .reset_index()
+
+sales_by_day_df
 
 
 # Quick Plot ---
@@ -227,6 +265,38 @@ ggplot(aes(x='order_date', y='total_price'), sales_by_month_df) +\
     )+\
     theme_minimal()+\
     expand_limits(y=0)
+
+
+#lets do this again, coz again why not
+
+usd = currency_format(prefix="$", accuracy=1, big_mark=",")
+
+#type([2000])
+usd([200000])
+
+# by month
+
+ggplot(aes(x = 'order_date', y = 'total_price'), sales_by_month_df)+\
+    geom_line()+\
+    geom_smooth(
+        method = 'loess',
+        se = False,
+        color = "blue",
+        span = 0.3
+    )+\
+    scale_y_continuous(labels= usd)+\
+    labs(
+        title="Revenue by Month",
+        x = "",
+        y = "Revenue"
+    )+\
+    theme_minimal()+\
+    expand_limits(y=0)
+
+
+#Lets do some plots for the year
+sales_by_year_df.plot(x = 'order_date', y = 'total_price')
+
 
 # 6.2 Sales by Year and Category 2 --
     
