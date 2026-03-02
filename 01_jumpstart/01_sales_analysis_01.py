@@ -16,6 +16,20 @@ theme_light,
 theme_classic
 )
 
+# plotnine
+from plotnine import (
+ggplot, aes,
+geom_line, geom_smooth, geom_col,
+facet_wrap,
+scale_y_continuous, scale_x_datetime,
+labs,
+theme, theme_minimal, theme_matplotlib,
+expand_limits,
+element_text,
+theme_light,
+theme_classic
+)
+
 from mizani.breaks import date_breaks
 from mizani.formatters import date_format, currency_format
 
@@ -358,6 +372,25 @@ ggplot(
             axis_text_x=element_text(size=6)
         )
        
+
+
+#lets do this function here
+def to_celsius(x):
+    '''Convert Fahrenheit to Celsius'''
+    return (x-32) * 5/9
+
+to_celsius(75)
+
+to_celsius(100)
+
+
+def convert_to_celsius(m):
+    '''Convert to Celsius too'''
+    n = (m-32) * 5/9
+    return n
+
+convert_to_celsius(75)
+
 
 
 
